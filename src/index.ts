@@ -11,7 +11,6 @@ import cors from "express";
 const envFile = process.env.NODE_ENV ? `.env.${process.env.NODE_ENV}` : ".env";
 dotenv.config({ path: envFile });
 const port = process.env.PORT || 4000;
-const allowedOrigin = process.env.ALLOWED_ORIGIN as string;
 const app = express();
 app.use(cors());
 
@@ -19,7 +18,7 @@ const server = http.createServer(app);
 
 const io = new Server(server, {
   cors: {
-    origin: [allowedOrigin, "http://localhost:3000"],
+    origin: "*",
     methods: ["GET", "POST"],
     credentials: true
   },
@@ -67,5 +66,5 @@ const chatBot = new ChatBot(io);
 chatBot.start();
 
 server.listen(port, () => {
-  console.log(`listening on ${port}, allowed origin: ${allowedOrigin}`);
+  console.log(`listening on ${port}`);
 });
