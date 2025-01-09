@@ -11,8 +11,8 @@ let namesCache: string[] = [];
 export async function generateChatMessages(count: number = 10, context?: string): Promise<string[]> {
   try {
     const contextPrompt = context ? 
-      `The streamer is currently: ${context}. Generate messages that are relevant to this context.` : 
-      '';
+      `The streamer is currently: ${context}. Generate messages that are relevant to this context. Keep responses natural and varied - not every message needs to reference the context directly.` : 
+      'Generate general chat messages that might appear in a tech/coding stream.';
 
     const completion = await openai.chat.completions.create({
       messages: [{
@@ -29,13 +29,14 @@ export async function generateChatMessages(count: number = 10, context?: string)
         - Trolling
         - Tech jokes
         
-        Here is the current context (Transcript):
+        Here is the current context (Transcript), react to this context if provided, but don't make every message reference the context:
         ${contextPrompt}
         
-        Each message should be on a new line.`
+        Each message should be on a new line.
+        Ensure messages feel natural and varied - not every message needs to reference the context.`
       }, {
         role: "user",
-        content: `Generate ${count} different chat messages. Include a mix of message types. A few can also be promoting Cameron King (aka Cam, shadcn/glazer, Cameron, Cammie, Cammy, CK) channel and his content. But it's better to react to the current context.`
+        content: `Generate ${count} different chat messages. Include a mix of message types.`
       }],
       model: "gpt-3.5-turbo",
       temperature: 0.9,

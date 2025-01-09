@@ -31,6 +31,9 @@ const profanity = new Profanity({
   grawlix: "****",
 });
 
+const CONTEXT_DEBOUNCE_MS = 4000; // 1 second debounce for context updates
+let lastContextUpdate = Date.now();
+
 io.on("connection", (socket) => {
   const id = socket.id;
   console.log("a user connected: ", id);
@@ -44,21 +47,33 @@ io.on("connection", (socket) => {
   });
 
   socket.on("update-context", (context: string) => {
-    console.log(`Updating context to: ${context}`);
-    chatBot.setContext(context);
+    const now = Date.now();
+    // Only update context if enough time has passed since last update
+    if (now - lastContextUpdate >= CONTEXT_DEBOUNCE_MS) {
+      console.log(`Updating context to: ${context}`);
+      chatBot.setContext(context);
+      lastContextUpdate = now;
+    }
   });
 
   socket.on("message", (message: string) => {
     console.log(`Received message ${message} from ${user.username}`);
     const filteredMessage = profanity.censor(message);
+    
+    // Get current valid context (if any)
+    const currentContext = chatBot.getCurrentContext();
+    
     io.emit(
       "new-message",
       generateMessage({ 
         content: filteredMessage, 
         author: user,
-        context: chatBot.getCurrentContext() 
+        context: currentContext
       })
     );
+
+    // Only update context from user messages if it's substantial (e.g., more than a few words)
+      chatBot.setContext(filteredMessage);
   });
 });
 

@@ -9,12 +9,14 @@ export default class ChatBot {
   private readonly BURST_CHANCE = 0.45; // 15% chance of burst messages
   private readonly BURST_MIN_MESSAGES = 3;
   private readonly BURST_MAX_MESSAGES = 10;
+  private readonly CONTEXT_EXPIRY_MS = 5 * 60 * 1000; // 5 minutes
 
   private socket: Server;
   private scheduler: ToadScheduler;
   private currentJobId: number = 0;
   private lastMessageTime: number = Date.now();
   private currentContext?: string;
+  private contextUpdatedAt: number = Date.now();
 
   constructor(socket: Server) {
     this.socket = socket;
@@ -97,9 +99,16 @@ export default class ChatBot {
 
   public setContext(context: string) {
     this.currentContext = context;
+    this.contextUpdatedAt = Date.now();
   }
 
   public getCurrentContext(): string | undefined {
+    const now = Date.now();
+    if (now - this.contextUpdatedAt > this.CONTEXT_EXPIRY_MS) {
+      // Context has expired
+      this.currentContext = undefined;
+      return undefined;
+    }
     return this.currentContext;
   }
 }
